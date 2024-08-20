@@ -46,6 +46,10 @@ export class CreateUserDto {
   phoneNumber: string;
 
   @ApiPropertyOptional()
+  @IsString()
+  twoFactorCode: string;
+
+  @ApiPropertyOptional()
   @IsDate()
   createdAt: Date;
 
@@ -85,6 +89,11 @@ export class UpdateUserDto {
   @ApiPropertyOptional()
   @IsString()
   phoneNumber: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  twoFactorCode: string;
+
 
   @ApiPropertyOptional()
   @IsDate()

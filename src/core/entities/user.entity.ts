@@ -12,6 +12,7 @@ export class User {
   avatar: string;
   gender: string;
   phoneNumber: string;
+  twoFactorCode: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;

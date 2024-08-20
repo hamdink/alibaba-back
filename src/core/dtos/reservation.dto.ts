@@ -13,10 +13,9 @@ export class Participant{
 
 }
 
-enum Status{
+export enum Status{
     pending = "pending",
     confirmed = "confirmed",
-    canceled = "canceled"
 }
 
 enum Activity{

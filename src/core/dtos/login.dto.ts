@@ -37,3 +37,14 @@ export class ResetPasswordRequestDto {
   token: string;
 }
 
+export class TwoFactorDto {
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+}

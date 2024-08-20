@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   LoginRequestDto,
   LoginResponseDto,
+  TwoFactorDto,
 } from "../../core/dtos";
 import { JwtService } from "../../frameworks/jwt/jwt-services.service";
 import { LoginFactoryService } from "./login-factory.service";
@@ -9,6 +10,7 @@ import { IBcryptService, IDataServices, User } from "../../core";
 import { MailerService } from "../../frameworks/mailer/mailer-services.service";
 import { resetTemplate } from "../../core/mailerTemplates/resetPassTemplate";
 import { FRONT_END_URL } from "../../configuration";
+import { twoFACodeTemplate } from "src/core/mailerTemplates/codeTemplate";
 
 @Injectable()
 export class LoginUseCase {
@@ -20,6 +22,9 @@ export class LoginUseCase {
     private loginFactoryService: LoginFactoryService,
   ) {}
  
+  generateTwoFactorCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.dataServices.users.findByAttribute("email", email);
     if (!user) return null;
@@ -31,10 +36,49 @@ export class LoginUseCase {
     return isPasswordValid ? user : null;
   }
 
-  async login(credentials: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(credentials: LoginRequestDto): Promise<string> {
     const { email, password } = credentials;
     const user: any = await this.validateUser(email, password);
     if (!user) throw new NotFoundException("Email or Password incorrect.");
+
+    const twoFactorCode = this.generateTwoFactorCode();
+    const expirationTime = new Date();
+    expirationTime.setMinutes(expirationTime.getMinutes() + 10); // 10 minutes
+
+    user.twoFactorCode = twoFactorCode;
+    user.twoFactorExpiration = expirationTime;
+    await this.dataServices.users.update(user.id, {
+      ...user,
+    });
+
+    await this.mailerService.sendEmail(
+      user.email,
+      "Two-Factor Authentication Code",
+      twoFACodeTemplate(twoFactorCode),
+    );
+
+    return "2FA code sent to email.";
+  }
+
+  async verifyTwoFactorCode(
+    twoFactorInput: TwoFactorDto,
+  ): Promise<LoginResponseDto> {
+    const user: any = await this.dataServices.users.findByAttribute(
+      "email",
+      twoFactorInput.email,
+    );
+    if (
+      !user ||
+      user.twoFactorCode !== twoFactorInput.code ||
+      new Date() > user.twoFactorExpiration
+    ) {
+      throw new NotFoundException("Invalid or expired 2FA code.");
+    }
+    user.twoFactorCode = null;
+    user.twoFactorExpiration = null;
+    await this.dataServices.users.update(user.id, {
+      ...user,
+    });
 
     const token = this.jwtService.generateToken({ userId: user.id }, "1d");
     return this.loginFactoryService.createLoginResponse(token);

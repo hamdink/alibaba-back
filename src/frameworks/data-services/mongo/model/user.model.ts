@@ -37,6 +37,9 @@ export class User {
   @Prop()
   phoneNumber: string;
 
+  @Prop()
+  twoFactorCode: string;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

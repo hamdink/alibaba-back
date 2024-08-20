@@ -6,6 +6,7 @@ import {
   ForgotPasswordRequestDto,
   LoginRequestDto,
   ResetPasswordRequestDto,
+  TwoFactorDto,
 } from "../core/dtos";
 import { LoginResponseDto } from "../core/dtos";
 import { JwtAuthGuard } from "../core/guards/jwtauth.guard";
@@ -14,12 +15,20 @@ import { LoginUseCase } from "../use-cases/login/login.use-case";
 @Controller("auth")
 export class LoginController {
   constructor(private readonly loginUseCase: LoginUseCase) {}
-
   @Post("login")
-  async login(@Body() credentials: LoginRequestDto): Promise<LoginResponseDto> {
-    return await this.loginUseCase.login(credentials);
+  async login(@Body() credentials: LoginRequestDto): Promise<string> {
+    const loginResponse = await this.loginUseCase.login(credentials);
+    return loginResponse;
   }
 
+  @Post("two-factor-auth")
+  async verifyTwoFactorCode(
+    @Body() twoFactorInput: TwoFactorDto,
+  ): Promise<LoginResponseDto> {
+    const loginResponse =
+      await this.loginUseCase.verifyTwoFactorCode(twoFactorInput);
+    return loginResponse;
+  }
 
   @Post("forgot-password")
   @ApiBody({ type: ForgotPasswordRequestDto })

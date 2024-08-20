@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ReservationFactoryService } from "./reservation-factory.service";
-import { AbstractMailerService, CreateReservationDto, IDataServices, Reservation } from "src/core";
+import { AbstractMailerService, CreateReservationDto, IDataServices, Reservation, Status } from "src/core";
 
 @Injectable()
 export class ReservationUseCases{
@@ -87,6 +87,36 @@ export class ReservationUseCases{
             throw error;
         }
     }
+
+    async updateReservationStatus(id: string): Promise<Reservation> {
+        try {
+            const reservation = await this.dataServices.reservations.get({ _id: id, deletedAt: null });
+            if (!reservation) {
+                throw new Error("Reservation not found");
+            }
+            console.log("reservation", reservation);
+            reservation.status = Status.confirmed;
+            const updatedReservation = await this.dataServices.reservations.update(id, reservation);
+
+            const user = await this.dataServices.users.get({ _id: reservation.userId });
+
+            const subject = 'Reservation Confirmation';
+            const htmlContent = `<p>Your reservation has been confirmed.</p><p>Details:</p>
+                                 <ul>
+                                     <li>Date: ${reservation.date}</li>
+                                     <li>Time: ${reservation.heure}</li>
+                                     <li>Activity: ${reservation.activity}</li>
+                                     <li>Hotel: ${reservation.hotel}</li>
+                                 </ul>`;
+
+            // Send the confirmation email
+            await this.mailerService.sendEmail(user.email, subject, htmlContent);
+            return updatedReservation;
+        } catch (error) {
+            throw error;
+        }
+    }
+
 
 
 }
