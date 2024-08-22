@@ -38,6 +38,9 @@ export class User {
   phoneNumber: string;
 
   @Prop()
+  country: string;
+
+  @Prop()
   twoFactorCode: string;
 
   @Prop({ default: Date.now })

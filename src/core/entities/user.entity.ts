@@ -11,6 +11,7 @@ export class User {
   birthDate: string;
   avatar: string;
   gender: string;
+  country: string;
   phoneNumber: string;
   twoFactorCode: string;
   createdAt: Date;

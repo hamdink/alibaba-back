@@ -38,6 +38,10 @@ export class CreateUserDto {
   @IsString()
   gender: string;
 
+  @ApiPropertyOptional()
+  @IsString()
+  country: string;
+
   @ApiPropertyOptional({ type: "string", format: "binary" })
   avatar: any;
 
@@ -89,6 +93,10 @@ export class UpdateUserDto {
   @ApiPropertyOptional()
   @IsString()
   phoneNumber: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  country: string;
 
   @ApiPropertyOptional()
   @IsString()

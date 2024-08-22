@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { ReservationFactoryService } from "./reservation-factory.service";
-import { AbstractMailerService, CreateReservationDto, IDataServices, Reservation, Status } from "src/core";
+import { AbstractMailerService, CreateReservationDto, IDataServices, Participant, Reservation, Status } from "src/core";
+import { generateReservationEmailContent } from "src/core/mailerTemplates/reservationTemplate";
+import { generateConfirmationEmailContent } from "src/core/mailerTemplates/confirmationReservationTemplate";
 
 @Injectable()
 export class ReservationUseCases{
@@ -14,17 +16,31 @@ export class ReservationUseCases{
         try {
           const newReservationData = this.reservationFactoryService.createNewReservation(createReservationDto);
           const newReservation = await this.dataServices.reservations.create(newReservationData);
-            const user = await this.dataServices.users.get({ _id: newReservation.userId });
-          const subject = 'Reservation Confirmation';
-          const htmlContent = `<p>Your reservation has been successfully created.</p>`;
+          const user = await this.dataServices.users.get({ _id: newReservation.userId });
+          const participants: any[] = [
+            ...createReservationDto.NameOfParticipants.map(name => ({ name })), 
+            ...createReservationDto.childrens.map(child => ({ name: child.name })) 
+          ];
+
+          const subject = 'Confirmation de demande de réservation';
+          const htmlContent = generateReservationEmailContent(
+            user.firstName,
+            'Ali Baba',
+            createReservationDto.activity,
+            createReservationDto.date,
+            createReservationDto.heure,
+            participants,
+             'alibaba@gmail.com'
+          );
+      
           await this.mailerService.sendEmail(user.email, subject, htmlContent);
-    
+      
           return newReservation;
         } catch (error) {
           throw error;
         }
       }
-
+      
     async getAllReservations(): Promise<Reservation[]> {
         try {
             const reservations = await this.dataServices.reservations.findAllByAttribute('deletedAt', null);
@@ -94,29 +110,36 @@ export class ReservationUseCases{
             if (!reservation) {
                 throw new Error("Reservation not found");
             }
-            console.log("reservation", reservation);
+    
             reservation.status = Status.confirmed;
             const updatedReservation = await this.dataServices.reservations.update(id, reservation);
-
+    
             const user = await this.dataServices.users.get({ _id: reservation.userId });
-
-            const subject = 'Reservation Confirmation';
-            const htmlContent = `<p>Your reservation has been confirmed.</p><p>Details:</p>
-                                 <ul>
-                                     <li>Date: ${reservation.date}</li>
-                                     <li>Time: ${reservation.heure}</li>
-                                     <li>Activity: ${reservation.activity}</li>
-                                     <li>Hotel: ${reservation.hotel}</li>
-                                 </ul>`;
-
-            // Send the confirmation email
+    
+            const participants: any[] = [
+              ...reservation.NameOfParticipants.map(name => ({ name })),
+              ...reservation.childrens.map(child => ({ name: child.name }))
+            ];
+    
+            const subject = 'Confirmation de votre réservation';
+            const htmlContent = generateConfirmationEmailContent(
+                user.firstName,
+                'Ali Baba',
+                reservation.activity, 
+                reservation.date,
+                reservation.heure,
+                participants, 
+                'Alibaba@gmail.com'
+            );
+    
             await this.mailerService.sendEmail(user.email, subject, htmlContent);
+    
             return updatedReservation;
         } catch (error) {
             throw error;
         }
     }
-
+    
 
 
 }

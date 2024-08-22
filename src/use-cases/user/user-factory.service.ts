@@ -16,6 +16,7 @@ export class UserFactoryService {
     newUser.gender = createUserDto.gender;
     newUser.phoneNumber = createUserDto.phoneNumber;
     newUser.avatar = createUserDto.avatar;
+    newUser.country = createUserDto.country;
     return newUser;
   }
 
@@ -28,6 +29,7 @@ export class UserFactoryService {
     updatedUser.role = updateUserDto.role;
     updatedUser.phoneNumber = updateUserDto.phoneNumber;
     updatedUser.avatar = updateUserDto.avatar;
+    updatedUser.country = updateUserDto.country;
     updatedUser.updatedAt = new Date();
 
     return updatedUser;

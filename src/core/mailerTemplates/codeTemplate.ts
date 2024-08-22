@@ -55,7 +55,7 @@ export const twoFACodeTemplate = (CODE: string) => {
                 <!-- Footer Section -->
                 <tr>
                     <td bgcolor="#f4f4f4" align="center" style="padding: 30px 30px;">
-                        &copy; 2023 ALiBabaID. All rights reserved.
+                        &copy; 2024 ALiBabaID. All rights reserved.
                     </td>
                 </tr>
             </table>
